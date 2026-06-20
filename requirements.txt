@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+pymupdf          # PDF to image
+opencv-python    # image processing
+easyocr          # tag extraction
+Pillow           # image manipulation
+sqlalchemy
+asyncpg          # async postgres driver
+psycopg2-binary
+python-dotenv
+celery
+redis
