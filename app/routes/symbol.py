@@ -5,6 +5,19 @@ from app.models.symbol import Symbol
 
 router = APIRouter()
 
+@router.get("/status/{job_id}")
+def get_job_status(job_id: str, db: Session = Depends(get_db)):
+    symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()
+    
+    if not symbols:
+        return {"job_id": job_id, "status": "processing"}
+    
+    return {
+        "job_id": job_id,
+        "status": "completed",
+        "total_symbols": len(symbols)
+    }
+
 @router.get("/symbols/{job_id}")
 async def get_symbols(job_id: str, db: Session = Depends(get_db)):
     symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()

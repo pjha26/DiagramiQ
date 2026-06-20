@@ -25,13 +25,13 @@ graph TD
     
     Classifier -->|4. Saves Symbol Data| DB[(PostgreSQL)]
     
-    User -->|GET /api/symbols/{job_id}| API
+    User -->|"GET /api/symbols/{job_id}"| API
     API -->|Reads Data| DB
     
-    User -->|PATCH /api/symbols/{id}| API
+    User -->|"PATCH /api/symbols/{id}"| API
     API -->|Updates Data| DB
     
-    User -->|GET /api/export/{job_id}| API
+    User -->|"GET /api/export/{job_id}"| API
 ```
 
 ### Workflow Steps:
@@ -108,8 +108,12 @@ celery -A app.task.celery worker --loglevel=info
 
 ### `POST /api/upload`
 Upload a PDF diagram.
-- **Payload:** `multipart/form-data` (PDF file)
+- **Payload:** `multipart/form-data` (PDF file, max 10MB)
 - **Response:** Returns a `job_id` and marks status as `processing`.
+
+### `GET /api/status/{job_id}`
+Check the current processing status of a Celery background job.
+- **Response:** Returns `{"status": "processing"}` or `{"status": "completed", "total_symbols": X}`.
 
 ### `GET /api/symbols/{job_id}`
 Retrieve all extracted symbols associated with a specific job upload.
