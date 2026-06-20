@@ -35,6 +35,12 @@ def export_symbols(job_id: str, db: Session = Depends(get_db)):
         "total_detected": len(symbols),
         "engineering_symbols_count": len(engineering),
         "unclassified_count": len(unknown),
+        "summary": {
+            "valve": len([s for s in engineering if s["symbol_type"] == "valve"]),
+            "vessel": len([s for s in engineering if s["symbol_type"] == "vessel"]),
+            "pump": len([s for s in engineering if s["symbol_type"] == "pump"]),
+            "instrument": len([s for s in engineering if s["symbol_type"] == "instrument"]),
+        },
         "engineering_symbols": engineering,
         "unclassified": unknown
     }

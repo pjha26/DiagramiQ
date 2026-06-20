@@ -27,30 +27,30 @@ def process_diagram(job_id: str, pdf_b64: str):
             continue
         
         for i, region in enumerate(regions):
-            # crop the symbol region
-            crop = page_img.crop((
-                region["x"], region["y"],
-                region["x"] + region["w"],
-                region["y"] + region["h"]
-            ))
-            
-            # run OCR on the crop
             try:
+                # crop the symbol region
+                crop = page_img.crop((
+                    region["x"], region["y"],
+                    region["x"] + region["w"],
+                    region["y"] + region["h"]
+                ))
+                
+                # run OCR on the crop
                 ocr_result = extract_tag(crop)
+                
+                # classify based on tag
+                symbol_type = classify_symbol(ocr_result["tag"], ocr_result["all_text"])
+                
+                # save to DB
+                save_symbol({
+                    "job_id": job_id,
+                    "shape_label": f"Shape-{i+1}",
+                    "tag": ocr_result["tag"],
+                    "symbol_type": symbol_type,
+                    "bbox": region,
+                    "confidence": ocr_result["confidence"],
+                    "properties": {}
+                })
             except Exception as e:
-                logger.error(f"OCR failed on region {region}: {str(e)}")
+                logger.error(f"Failed to process region {i} for job {job_id}: {str(e)}")
                 continue
-            
-            # classify based on tag
-            symbol_type = classify_symbol(ocr_result["tag"], ocr_result["all_text"])
-            
-            # save to DB
-            save_symbol({
-                "job_id": job_id,
-                "shape_label": f"Shape-{i+1}",
-                "tag": ocr_result["tag"],
-                "symbol_type": symbol_type,
-                "bbox": region,
-                "confidence": ocr_result["confidence"],
-                "properties": {}
-            })
