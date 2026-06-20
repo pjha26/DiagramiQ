@@ -1,5 +1,9 @@
 import easyocr
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
 reader = easyocr.Reader(['en'], gpu=False)
 
 def extract_tag(pil_crop) -> dict:

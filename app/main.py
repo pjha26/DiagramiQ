@@ -1,5 +1,11 @@
-
 from fastapi import FastAPI
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
 from app.routes import upload, symbol, export
 from app.database import engine, Base
 

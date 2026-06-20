@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
 from PIL import Image
+import logging
+
+logger = logging.getLogger(__name__)
 
 def detect_symbol_regions(pil_image) -> list:
+    logger.info("Starting symbol region detection")
     img = np.array(pil_image.convert("RGB"))
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # threshold to isolate dark shapes on white background
