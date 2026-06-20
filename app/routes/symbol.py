@@ -11,7 +11,7 @@ async def update_symbol(symbol_id: int, payload: dict, db: Session = Depends(get
     db.commit()
     return symbol
 
-# app/routes/export.py
+
 @router.get("/export/{job_id}")
 async def export_symbols(job_id: str, db: Session = Depends(get_db)):
     symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()

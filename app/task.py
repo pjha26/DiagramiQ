@@ -1,9 +1,9 @@
 
 from celery import Celery
 from app.services.pdf_processor import pdf_to_images
-from app.services.symbol_detector import detect_symbol_regions, classify_symbol
-from app.services.ocr_service import extract_tag
-from app.services.db_service import save_symbol
+from app.services.symbol_detecter import detect_symbol_regions, classify_symbol
+from app.services.ocr_services import extract_tag
+from app.services.db_services import save_symbol
 
 celery = Celery("tasks", broker="redis://localhost:6379/0")
 
