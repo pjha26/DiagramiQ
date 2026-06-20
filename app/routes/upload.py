@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, UploadFile, File
 import uuid
+from app.task import process_diagram
 
 router = APIRouter()
 
