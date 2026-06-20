@@ -18,3 +18,16 @@ def detect_symbol_regions(pil_image) -> list:
             regions.append({"x": x, "y": y, "w": w, "h": h})
     
     return regions
+
+def classify_symbol(tag: str, all_text: list) -> str:
+    if not tag:
+        return "unknown"
+    if "XV" in tag or "PV" in tag:
+        return "valve"
+    if "HEX" in tag:
+        return "vessel"
+    if "P-" in tag or "PT" in tag or "PE" in tag:
+        return "pump"
+    if "PIC" in tag:
+        return "instrument"
+    return "unknown"
