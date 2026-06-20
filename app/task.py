@@ -1,14 +1,18 @@
-
+import os
+import base64
+from dotenv import load_dotenv
 from celery import Celery
 from app.services.pdf_processor import pdf_to_images
 from app.services.symbol_detecter import detect_symbol_regions, classify_symbol
 from app.services.ocr_services import extract_tag
 from app.services.db_services import save_symbol
 
-celery = Celery("tasks", broker="redis://localhost:6379/0")
+load_dotenv()
+celery = Celery("tasks", broker=os.getenv("REDIS_URL", "redis://localhost:6379/0"))
 
 @celery.task
-def process_diagram(job_id: str, pdf_bytes: bytes):
+def process_diagram(job_id: str, pdf_b64: str):
+    pdf_bytes = base64.b64decode(pdf_b64)
     images = pdf_to_images(pdf_bytes)
     
     for page_img in images:

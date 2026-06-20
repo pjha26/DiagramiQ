@@ -1,5 +1,4 @@
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.symbol import Symbol
@@ -11,7 +10,7 @@ def export_symbols(job_id: str, db: Session = Depends(get_db)):
     symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()
 
     if not symbols:
-        return {"error": "No symbols found for this job_id"}
+        raise HTTPException(status_code=404, detail="No symbols found for this job_id")
 
     engineering = []
     unknown = []
@@ -26,7 +25,7 @@ def export_symbols(job_id: str, db: Session = Depends(get_db)):
             "confidence": s.confidence,
             "properties": s.properties
         }
-        if s.symbol_type == "unknown":
+        if s.symbol_type == "unknown" or s.symbol_type is None:
             unknown.append(symbol_data)
         else:
             engineering.append(symbol_data)

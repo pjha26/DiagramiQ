@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.symbol import Symbol
@@ -13,6 +13,14 @@ async def get_symbols(job_id: str, db: Session = Depends(get_db)):
 @router.patch("/symbols/{symbol_id}")
 async def update_symbol(symbol_id: int, payload: dict, db: Session = Depends(get_db)):
     symbol = db.query(Symbol).filter(Symbol.id == symbol_id).first()
-    symbol.properties.update(payload)   # merge custom fields
+    if not symbol:
+        raise HTTPException(status_code=404, detail="Symbol not found")
+        
+    # Reassign dictionary to trigger SQLAlchemy's JSON modification tracking
+    props = dict(symbol.properties) if symbol.properties else {}
+    props.update(payload)
+    symbol.properties = props
+    
     db.commit()
+    db.refresh(symbol)
     return symbol
