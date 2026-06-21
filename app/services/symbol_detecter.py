@@ -9,39 +9,37 @@ def detect_symbol_regions(pil_image) -> list:
     img = np.array(pil_image.convert("RGB"))
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     
-    # apply gaussian blur to reduce noise before thresholding
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # invert so symbols are white on black
+    inverted = cv2.bitwise_not(gray)
     
-    # use adaptive threshold instead of fixed threshold
-    # handles varying lighting and contrast across the page
-    thresh = cv2.adaptiveThreshold(
-        blurred, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV,
-        11, 2
-    )
+    # threshold - anything not white becomes white
+    _, thresh = cv2.threshold(inverted, 30, 255, cv2.THRESH_BINARY)
     
-    # dilate to connect nearby symbol components
-    kernel = np.ones((3, 3), np.uint8)
-    dilated = cv2.dilate(thresh, kernel, iterations=2)
+    # dilate to connect symbol parts
+    kernel = np.ones((15, 15), np.uint8)
+    dilated = cv2.dilate(thresh, kernel, iterations=3)
     
     contours, _ = cv2.findContours(
-        dilated, 
-        cv2.RETR_EXTERNAL, 
+        dilated,
+        cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_SIMPLE
     )
+    
+    print(f"Total contours found: {len(contours)}")
     
     regions = []
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
         area = w * h
-        # relaxed area filter to catch more symbol sizes
-        if 1000 < area < 800000:
+        print(f"Contour: x={x} y={y} w={w} h={h} area={area}")
+        
+        # image is 2339x3572, symbols are roughly 400-800px each
+        # outer border will be ~2339x3572 so filter that out
+        if 10000 < area < 2000000:
             regions.append({"x": x, "y": y, "w": w, "h": h})
     
-    # sort regions top-left to bottom-right
-    regions.sort(key=lambda r: (r["y"] // 100, r["x"]))
-    
+    print(f"Regions after filter: {len(regions)}")
+    regions.sort(key=lambda r: (r["y"] // 200, r["x"]))
     return regions
 
 def classify_symbol(tag: str, all_text: list) -> str:
