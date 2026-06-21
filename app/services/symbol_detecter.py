@@ -6,20 +6,41 @@ import logging
 logger = logging.getLogger(__name__)
 
 def detect_symbol_regions(pil_image) -> list:
-    logger.info("Starting symbol region detection")
     img = np.array(pil_image.convert("RGB"))
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    # threshold to isolate dark shapes on white background
-    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
-    # find contours of symbol regions
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # apply gaussian blur to reduce noise before thresholding
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    
+    # use adaptive threshold instead of fixed threshold
+    # handles varying lighting and contrast across the page
+    thresh = cv2.adaptiveThreshold(
+        blurred, 255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV,
+        11, 2
+    )
+    
+    # dilate to connect nearby symbol components
+    kernel = np.ones((3, 3), np.uint8)
+    dilated = cv2.dilate(thresh, kernel, iterations=2)
+    
+    contours, _ = cv2.findContours(
+        dilated, 
+        cv2.RETR_EXTERNAL, 
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+    
     regions = []
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
-        area = w *h
-        # filter out noise (too small) and full-page contours (too large)
-        if 3000 < area < 500000:
+        area = w * h
+        # relaxed area filter to catch more symbol sizes
+        if 1000 < area < 800000:
             regions.append({"x": x, "y": y, "w": w, "h": h})
+    
+    # sort regions top-left to bottom-right
+    regions.sort(key=lambda r: (r["y"] // 100, r["x"]))
     
     return regions
 

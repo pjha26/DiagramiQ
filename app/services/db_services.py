@@ -13,5 +13,8 @@ def save_symbol(data: dict):
         db.commit()
         db.refresh(symbol)
         return symbol
+    except Exception as e:
+        db.rollback()
+        raise e
     finally:
         db.close()

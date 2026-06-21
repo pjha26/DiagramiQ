@@ -10,28 +10,35 @@ The following diagram illustrates the flow of data from a user's PDF upload to f
 
 ```mermaid
 graph TD
-    User([User]) -->|POST /api/upload| API[FastAPI Application]
-    API -->|1. Returns job_id| User
-    API -->|2. Publishes task| Redis[(Redis Broker)]
+    Client(["User / client"])
     
-    Worker[Celery Worker] -.->|3. Consumes task| Redis
-    
-    subgraph Background Processing Pipeline
-        Worker -->|PDF Bytes| PDF[PDF Processor<br/>PyMuPDF]
-        PDF -->|Images| OpenCV[Symbol Detector<br/>OpenCV]
-        OpenCV -->|Symbol Regions| OCR[OCR Service<br/>EasyOCR]
-        OCR -->|Extracted Tags| Classifier[Symbol Classifier]
+    subgraph API ["FastAPI — API layer"]
+        Upload["POST /upload<br>accepts PDF, returns job_id"]
+        Status["GET /status/{job_id}<br>processing or completed"]
+        Export["GET /export/{job_id}<br>structured JSON output"]
+        Patch["PATCH /symbols/{symbol_id} — assign custom properties"]
     end
     
-    Classifier -->|4. Saves Symbol Data| DB[(PostgreSQL)]
+    Client -- "HTTP request" --> API
     
-    User -->|"GET /api/symbols/{job_id}"| API
-    API -->|Reads Data| DB
+    Redis["Redis broker<br>job queue (base64 payload)"]
+    API -- "publishes job" --> Redis
     
-    User -->|"PATCH /api/symbols/{id}"| API
-    API -->|Updates Data| DB
+    subgraph Pipeline ["Celery — background pipeline"]
+        direction TB
+        PDF["pdf_processor.py — PyMuPDF<br>PDF → high-res image (2x zoom)"]
+        CV["symbol_detector.py — OpenCV<br>contour detection → bounding boxes"]
+        OCR["ocr_service.py — EasyOCR<br>crops → tag extraction (XV, PV, HEX...)"]
+        Classify["classify_symbol() — rule-based<br>valve / vessel / pump / unknown"]
+        PDF --> CV --> OCR --> Classify
+    end
     
-    User -->|"GET /api/export/{job_id}"| API
+    Redis -- "consumes task" --> Pipeline
+    
+    DB[("PostgreSQL<br>symbols table<br>job_id, tag, type<br>bbox, confidence<br>properties (JSON)")]
+    
+    Classify -- "saves symbol data" --> DB
+    API -- "reads / updates" --> DB
 ```
 
 ### Workflow Steps:
