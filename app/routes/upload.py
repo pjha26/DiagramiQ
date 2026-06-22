@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
 import uuid
 import base64
 from app.task import process_diagram
@@ -28,7 +29,10 @@ async def upload_diagram(file: UploadFile = File(...)):
         create_job(job_id)
         process_diagram.delay(job_id, pdf_b64)
         
-        return {"job_id": job_id, "status": "processing"}
+        return JSONResponse(
+            status_code=202,
+            content={"job_id": job_id, "status": "processing"}
+        )
     
     except HTTPException:
         raise

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.symbol import Symbol
@@ -6,8 +6,13 @@ from app.models.symbol import Symbol
 router = APIRouter()
 
 @router.get("/export/{job_id}")
-def export_symbols(job_id: str, db: Session = Depends(get_db)):
+def export_symbols(
+    job_id: str, 
+    min_confidence: float = Query(0.0),
+    db: Session = Depends(get_db)
+):
     symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()
+    symbols = [s for s in symbols if (s.confidence or 0) >= min_confidence]
 
     if not symbols:
         raise HTTPException(status_code=404, detail="No symbols found for this job_id")
@@ -36,8 +41,9 @@ def export_symbols(job_id: str, db: Session = Depends(get_db)):
         "engineering_symbols_count": len(engineering),
         "unclassified_count": len(unknown),
         "summary": {
-            "valve": len([s for s in engineering if s["symbol_type"] == "valve"]),
-            "vessel": len([s for s in engineering if s["symbol_type"] == "vessel"]),
+            "control_valve": len([s for s in engineering if s["symbol_type"] == "control_valve"]),
+            "pressure_vessel": len([s for s in engineering if s["symbol_type"] == "pressure_vessel"]),
+            "heat_exchanger": len([s for s in engineering if s["symbol_type"] == "heat_exchanger"]),
             "pump": len([s for s in engineering if s["symbol_type"] == "pump"]),
             "instrument": len([s for s in engineering if s["symbol_type"] == "instrument"]),
         },

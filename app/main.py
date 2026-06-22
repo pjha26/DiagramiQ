@@ -21,3 +21,11 @@ app.include_router(export.router, prefix="/api")
 @app.get("/")
 def root():
     return {"status": "DiagramIQ running"}
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
+        "service": "DiagramIQ",
+        "version": "1.0.0"
+    }

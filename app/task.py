@@ -31,9 +31,10 @@ def process_diagram(job_id: str, pdf_b64: str):
                 try:
                     # crop the symbol region
                     crop = page_img.crop((
-                        region["x"], region["y"],
-                        region["x"] + region["w"],
-                        region["y"] + region["h"]
+                        max(0, region["x"] - 20),
+                        max(0, region["y"] - 20),
+                        region["x"] + region["w"] + 20,
+                        region["y"] + region["h"] + 80
                     ))
                     
                     # run OCR on the crop

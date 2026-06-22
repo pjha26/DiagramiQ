@@ -49,15 +49,20 @@ def detect_symbol_regions(pil_image) -> list:
     print(f"Final regions detected: {len(regions)}")
     return regions
 
-def classify_symbol(tag: str, all_text: list) -> str:
+def classify_symbol(tag, all_text):
+    combined = " ".join(all_text).upper()
     if not tag:
-        return "unknown"
-    if "XV" in tag or "PV" in tag:
-        return "valve"
-    if "HEX" in tag:
-        return "vessel"
-    if "P-" in tag or "PT" in tag or "PE" in tag:
+        tag = ""
+    tag = tag.upper()
+    if "XV" in tag or "XV" in combined:
+        return "control_valve"
+    elif "PV" in tag or "PV" in combined:
+        return "pressure_vessel"
+    elif "HEX" in tag or "HEX" in combined:
+        return "heat_exchanger"
+    elif any(x in combined for x in ["P-XXX", "P-100", "P-200"]):
         return "pump"
-    if "PIC" in tag:
+    elif any(x in combined for x in ["PIC", "PT", "PE"]):
         return "instrument"
-    return "unknown"
+    else:
+        return "unknown"
