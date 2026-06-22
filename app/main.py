@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 import logging
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+import os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,9 +21,10 @@ app.include_router(upload.router, prefix="/api")
 app.include_router(symbol.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
 
-@app.get("/")
-def root():
-    return {"status": "DiagramIQ running"}
+@app.get("/", response_class=HTMLResponse)
+async def frontend():
+    with open("templates/index.html", "r") as f:
+        return f.read()
 
 @app.get("/health")
 def health():
