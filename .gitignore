@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+redis/
+*.pdb
+*.exe
+.venv/
+debug_*.png
+*.db
