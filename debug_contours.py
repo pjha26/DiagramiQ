@@ -13,29 +13,33 @@ page = doc[0]
 mat = fitz.Matrix(3.0, 3.0)
 pix = page.get_pixmap(matrix=mat)
 img = Image.open(io.BytesIO(pix.tobytes("png")))
-
-print(f"Image size: {img.size}")
-print(f"Image mode: {img.mode}")
-
 img_array = np.array(img.convert("RGB"))
+
 gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-print(f"Gray min: {gray.min()}, max: {gray.max()}")
 
-inverted = cv2.bitwise_not(gray)
-_, thresh = cv2.threshold(inverted, 30, 255, cv2.THRESH_BINARY)
-print(f"Thresh non-zero pixels: {cv2.countNonZero(thresh)}")
+# save intermediate images for inspection
+cv2.imwrite(r"E:\webd\DiagramiQ\debug_gray.png", gray)
 
-kernel = np.ones((15, 15), np.uint8)
-dilated = cv2.dilate(thresh, kernel, iterations=3)
+_, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
+cv2.imwrite(r"E:\webd\DiagramiQ\debug_thresh.png", thresh)
 
-contours, _ = cv2.findContours(
-    dilated,
-    cv2.RETR_EXTERNAL,
+print(f"Gray min={gray.min()} max={gray.max()}")
+print(f"Thresh non-zero={cv2.countNonZero(thresh)}")
+
+# try RETR_TREE instead of RETR_EXTERNAL to find inner contours
+contours, hierarchy = cv2.findContours(
+    thresh,
+    cv2.RETR_TREE,
     cv2.CHAIN_APPROX_SIMPLE
 )
 
-print(f"Total contours found: {len(contours)}")
-for i, cnt in enumerate(contours):
+print(f"Total contours RETR_TREE: {len(contours)}")
+
+sorted_c = sorted(contours, 
+    key=lambda c: cv2.boundingRect(c)[2]*cv2.boundingRect(c)[3], 
+    reverse=True)
+
+for i, cnt in enumerate(sorted_c[:20]):
     x, y, w, h = cv2.boundingRect(cnt)
     area = w * h
     print(f"Contour {i}: x={x} y={y} w={w} h={h} area={area}")
