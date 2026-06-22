@@ -1,8 +1,8 @@
 # DiagramIQ - P&ID Symbol Extractor
 
-DiagramIQ is a FastAPI-based backend service designed to automatically extract, detect, and classify engineering symbols from Piping and Instrumentation Diagrams (P&IDs). 
+DiagramIQ is a full-stack web application and FastAPI-based service designed to automatically extract, detect, and classify engineering symbols from Piping and Instrumentation Diagrams (P&IDs). 
 
-It leverages **OpenCV** for computer vision-based shape detection and **EasyOCR** to read text/tags from diagrams, orchestrating the heavy lifting asynchronously via **Celery** and **Redis**.
+It includes an intuitive **Web UI** for uploading diagrams and viewing results, while leveraging **OpenCV** for computer vision-based shape detection and **EasyOCR** to read text/tags. The heavy lifting is orchestrated asynchronously via **Celery** and **Redis**.
 
 ## 🏗️ Project Architecture & Workflow
 
@@ -13,9 +13,11 @@ graph TD
     Client(["User / client"])
     
     subgraph API ["FastAPI — API layer"]
+        UI["GET /<br>serves frontend UI"]
         Upload["POST /upload<br>accepts PDF, returns job_id"]
         Status["GET /status/{job_id}<br>processing or completed"]
         Export["GET /export/{job_id}<br>structured JSON output"]
+        Image["GET /symbols/{symbol_id}/image<br>serves symbol crops"]
         Patch["PATCH /symbols/{symbol_id} — assign custom properties"]
     end
     
@@ -86,7 +88,13 @@ That is all you need. Docker handles PostgreSQL, Redis, FastAPI and Celery autom
 
 ---
 
-## 📡 API Endpoints
+## 📡 Endpoints
+
+### `GET /`
+Serves the interactive frontend Web UI.
+
+### `GET /api/symbols/{symbol_id}/image`
+Serves the automatically cropped PNG image for a specific detected symbol.
 
 ### `POST /api/upload`
 Upload a PDF diagram.

@@ -76,15 +76,11 @@
 </header>
 
 <div class="container">
-    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-box" id="uploadBox">
         <h2>Upload P&ID Diagram</h2>
         <p>Click to select a PDF file containing engineering symbols</p>
-        <input type="file" id="fileInput" accept=".pdf" onchange="handleUpload(this)">
-        <button class="btn" onclick="event.stopPropagation();" 
-            id="uploadBtn" 
-            onclick="document.getElementById('fileInput').click()">
-            Choose PDF File
-        </button>
+        <input type="file" id="fileInput" accept=".pdf">
+        <button class="btn" id="uploadBtn">Choose PDF File</button>
     </div>
 
     <div class="status-bar" id="statusBar">
@@ -96,6 +92,22 @@
 </div>
 
 <script>
+    document.getElementById('uploadBtn').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('uploadBox').addEventListener('click', function(e) {
+        if (e.target !== document.getElementById('uploadBtn')) {
+            document.getElementById('fileInput').click();
+        }
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function() {
+        if (this.files.length > 0) {
+            handleUpload(this);
+        }
+    });
+
     let currentJobId = null;
     let pollInterval = null;
 
