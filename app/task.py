@@ -4,7 +4,7 @@ import logging
 from dotenv import load_dotenv
 from celery import Celery
 from app.services.pdf_processor import pdf_to_images
-from app.services.symbol_detecter import detect_symbol_regions, classify_symbol
+from app.services.symbol_detector import detect_symbol_regions, classify_symbol
 from app.services.ocr_services import extract_tag
 from app.services.db_services import save_symbol, update_job_status
 
@@ -37,6 +37,12 @@ def process_diagram(job_id: str, pdf_b64: str):
                         region["y"] + region["h"] + 80
                     ))
                     
+                    output_dir = f"symbol_crops/{job_id}"
+                    os.makedirs(output_dir, exist_ok=True)
+                    
+                    crop_filename = f"{output_dir}/shape_{i+1}.png"
+                    crop.save(crop_filename)
+                    
                     # run OCR on the crop
                     ocr_result = extract_tag(crop)
                     
@@ -51,7 +57,8 @@ def process_diagram(job_id: str, pdf_b64: str):
                         "symbol_type": symbol_type,
                         "bbox": region,
                         "confidence": ocr_result["confidence"],
-                        "properties": {}
+                        "properties": {},
+                        "image_crop": crop_filename
                     })
                 except Exception as e:
                     logger.error(f"Failed to process region {i} for job {job_id}: {str(e)}")
