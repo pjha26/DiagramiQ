@@ -21,7 +21,7 @@ def detect_symbol_regions(pil_image) -> list:
     
     contours, _ = cv2.findContours(
         dilated,
-        cv2.RETR_EXTERNAL,
+        cv2.RETR_LIST,
         cv2.CHAIN_APPROX_SIMPLE
     )
     
