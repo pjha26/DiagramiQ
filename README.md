@@ -67,47 +67,13 @@ graph TD
 
 ## 🛠️ Setup & Installation
 
-### 1. Prerequisites
-Ensure you have the following installed:
-- Python 3.9+
-- PostgreSQL
-- Redis Server (running locally on port 6379, or hosted)
-
-### 2. Install Dependencies
-Clone the repository and install the required pip packages.
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Environment Variables
-Create or verify your `.env` file in the root directory. Ensure that special characters in your database password are URL-encoded.
-
-```env
-DATABASE_URL="postgresql://postgres:YOUR_ENCODED_PASSWORD@your.database.host:5432/postgres"
-REDIS_URL="redis://localhost:6379/0"
-```
-
-### 4. Database Migration
-The database tables are automatically created on startup via SQLAlchemy's `Base.metadata.create_all(bind=engine)` inside `app/main.py`.
-
----
-
-## 🏃‍♂️ Running the Application
-
-Because DiagramIQ relies on asynchronous background processing, you must run both the API server and the Celery worker concurrently.
-
-**Terminal 1: Start the FastAPI Server**
-```bash
-uvicorn app.main:app --reload
-```
-The API will be available at `http://127.0.0.1:8000`. You can view the interactive Swagger documentation at `http://127.0.0.1:8000/docs`.
-
-**Terminal 2: Start the Celery Worker**
-```bash
-# On Windows, you may need to add --pool=solo
-celery -A app.task.celery worker --loglevel=info
-```
+### Quick Start
+1. Clone the repo
+2. Copy .env.example to .env and fill in your values
+3. pip install -r requirements.txt
+4. Create PostgreSQL database named diagramiq
+5. Double-click start.bat to launch all services
+6. Open http://127.0.0.1:8000/docs
 
 ---
 
