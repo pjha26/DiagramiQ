@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 import uuid
 import base64
 from app.task import process_diagram
+from app.services.db_services import create_job
 
 router = APIRouter()
 
@@ -24,6 +25,7 @@ async def upload_diagram(file: UploadFile = File(...)):
         
         job_id = str(uuid.uuid4())
         pdf_b64 = base64.b64encode(pdf_bytes).decode("utf-8")
+        create_job(job_id)
         process_diagram.delay(job_id, pdf_b64)
         
         return {"job_id": job_id, "status": "processing"}

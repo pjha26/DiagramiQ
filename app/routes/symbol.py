@@ -2,19 +2,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.symbol import Symbol
+from app.models.job import Job
 
 router = APIRouter()
 
 @router.get("/status/{job_id}")
 def get_job_status(job_id: str, db: Session = Depends(get_db)):
-    symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()
+    job = db.query(Job).filter(Job.job_id == job_id).first()
     
-    if not symbols:
-        return {"job_id": job_id, "status": "processing"}
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    symbols = db.query(Symbol).filter(Symbol.job_id == job_id).all()
     
     return {
         "job_id": job_id,
-        "status": "completed",
+        "status": job.status,
         "total_symbols": len(symbols)
     }
 

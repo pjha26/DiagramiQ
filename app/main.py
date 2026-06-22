@@ -8,6 +8,7 @@ logging.basicConfig(
 
 from app.routes import upload, symbol, export
 from app.database import engine, Base
+from app.models.job import Job  # ensure Job table is created
 
 Base.metadata.create_all(bind=engine)
 
