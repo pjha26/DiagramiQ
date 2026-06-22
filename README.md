@@ -75,6 +75,15 @@ graph TD
 5. Double-click start.bat to launch all services
 6. Open http://127.0.0.1:8000/docs
 
+## Running with Docker (Recommended)
+1. Install Docker Desktop
+2. Clone the repo
+3. Run: docker-compose up --build
+4. Open http://localhost:8000/docs
+5. Open http://localhost:8000 for the UI
+
+That is all you need. Docker handles PostgreSQL, Redis, FastAPI and Celery automatically.
+
 ---
 
 ## 📡 API Endpoints

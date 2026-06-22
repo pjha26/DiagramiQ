@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: diagramiq
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/diagramiq
+      REDIS_URL: redis://redis:6379/0?protocol=2
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./symbol_crops:/app/symbol_crops
+
+  worker:
+    build: .
+    command: celery -A app.task.celery worker --loglevel=info --pool=solo
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/diagramiq
+      REDIS_URL: redis://redis:6379/0?protocol=2
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./symbol_crops:/app/symbol_crops
+
+volumes:
+  postgres_data:
